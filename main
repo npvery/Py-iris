@@ -1,0 +1,52 @@
+#Import libraries and functions
+import pandas as pd
+from pandas.plotting import scatter_matrix
+import scipy
+from sklearn import model_selection
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+import numpy as np
+import matplotlib.pyplot as plt
+
+#Load data
+sep = ','
+data = pd.read_table('C:/Users/Nicholas/Desktop/Other/Data/iris.data.txt', sep = sep, names = ('sep-len', 'sep-wid', 'pet-len', 'pet-wid', 'class'))
+
+#Describe and check data
+print(data.shape)
+print(data.head(10))
+print(data.describe())
+
+#Make plots of each variable
+data.hist('sep-len')
+data.hist('sep-wid')
+data.hist('pet-len')
+data.hist('pet-wid')
+
+#Make scatter plots
+scatter_matrix(data)
+
+#Split off test and train sets
+array = data.values
+x=array[:,0:4]
+y=array[:,4]
+xtrain, xtest, ytrain, ytest = model_selection.train_test_split(x, y, test_size = 0.2, random_state = 7)
+
+#Cross-validate
+scores = []
+names = []
+models = [('LDA', LinearDiscriminantAnalysis()), ('Tree', DecisionTreeClassifier()), ('SVM', SVC()), ('Reg', LogisticRegression()), ('KNN', KNeighborsClassifier()), ('Naive', GaussianNB())]
+for name, model in models:
+    kfold = model_selection.KFold(n_splits = 10, random_state = 7)
+    c_score = model_selection.cross_val_score(model, xtrain, ytrain, scoring = 'accuracy', cv = kfold)
+    scores.append(c_score)
+    names.append(name)
+    msg = "%s: %f %f" % (name, c_score.mean(), c_score.std())
